@@ -7,20 +7,25 @@
 	setlocale (LC_ALL, 'de_DE@euro', 'de_DE', 'de', 'ge');
 	header('Content-Type: application/json;charset=utf-8');
 	function formatDate($weirdDate) {
-		$date = date_parse_from_format('D, d. F Y', $weirdDate);
+		$date = date_parse_from_format('D, d. M Y', $weirdDate);
 		$day = $date["day"];
 		$year = $date["year"];
+		
 		// Parse localized months manually
+		$aMonths = array("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
 		$dateElements = explode(' ', trim(substr($weirdDate, 3)));
 		$month = $dateElements[1];
-		$localizedMonths = array();
-		for ($i = 1; $i <= 12; $i++) {
-			// iconv trick for right encoding from http://php.net/manual/de/function.strftime.php
-			$localizedMonths[$i] = iconv('ISO-8859-1', 'UTF-8',strftime('%B', mktime(0, 0, 0, $i, 1)));
-			if ($month == $localizedMonths[$i]) {
-				return strftime("%d.%m.%Y", mktime(0, 0, 0, $i, $day, $year));
-			}
+		
+		// use the number of the month
+		if (in_array($month, $aMonths)) {
+			$nMonth = array_search($month, $aMonths);
+			// array key +1
+			$nMonth = $nMonth+1;
+		} else {
+			$nMonth = "1";
 		}
+		
+		return strftime("%d.%m.%Y", mktime(0, 0, 0, $nMonth, $day, $year));
 	}
 	
 	// Meal API
@@ -62,8 +67,9 @@
 			foreach ($elements as $element) {
 				$meals[] = preg_replace("/\([^)]+\)/","", htmlentities($element->nodeValue));
 			}
+			
 			// Add todays' meal to result set, if meals exist
-			if (count($meals) > 0) {
+			if (count($meals) > 0 ) {
 				$result[] = ['date' => $dates[0], 'meals' => $meals];
 				$UP_TO_DATE = true;
 			} else {
@@ -91,6 +97,7 @@
 		foreach ($dateNodes as $date) {
 			$dates[] = formatDate($date->nodeValue);
 		}
+		
 		
 		// Query the DOM for xPaths where meals are
 		$xPathQueryMeals = "//td[@class='text1'] | //td[@class='text2'] | //td[@class='text3'] | //td[@class='text4']";
