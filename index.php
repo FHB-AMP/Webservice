@@ -37,8 +37,11 @@
 	function formatString($weirdString) {
 		$weirdString = preg_replace("/\([^)]+\)/", "", $weirdString);
 		$weirdString = preg_replace('/\s*,/', ',', $weirdString);
+		$weirdString = str_replace(' - ', '-', $weirdString);
+		$weirdString = preg_replace('/\s(\r\n)/', ' ', $weirdString);
+		$weirdString = preg_replace('/(\r\n)/', ' ', $weirdString);
 		$weirdString = html_entity_decode(preg_replace("/U\+([0-9A-F]{4})/", "&#x\\1;", $weirdString), ENT_NOQUOTES, 'UTF-8');
-		return str_replace("\r\n", " ", $weirdString);
+		return $weirdString;
 	}
 	
 	// Meal API
