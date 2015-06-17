@@ -25,7 +25,7 @@
 			$nMonth = "1";
 		}
 		
-		return strftime("%d.%m.%Y", mktime(0, 0, 0, $nMonth, $day, $year));
+		return strftime("%Y-%m-%d", mktime(0, 0, 0, $nMonth, $day, $year));
 	}
 	
 	// Meal API
@@ -61,7 +61,7 @@
 			$xpath = new DOMXpath($dom);
 			$xpath_query = "//table[@class]/tr[2]/td";
 			// Set current date
-			$dates[0] = date("d.m.Y");
+			$dates[0] = date("Y-m-d");
 			// Query the DOM for xPaths where meals are
 			$elements = $xpath->query($xpath_query);
 			foreach ($elements as $element) {
