@@ -1,17 +1,19 @@
 <?php
 	// Debug Mode
-	//ini_set('display_errors', 'On');
-	//error_reporting(E_ALL | E_STRICT);
+	// ini_set('display_errors', 'On');
+	// error_reporting(E_ALL | E_STRICT);
 	// Set local time
 	date_default_timezone_set("Europe/Berlin");
 	setlocale (LC_ALL, 'de_DE@euro', 'de_DE', 'de', 'ge');
 	header('Content-Type: application/json;charset=utf-8');
+	
+	// date from 'Do, 18. Juni 2015' to '2015-06-08'
 	function formatDate($weirdDate) {
 		$date = date_parse_from_format('D, d. M Y', $weirdDate);
 		$day = $date["day"];
 		$year = $date["year"];
 		
-		// Parse localized months manually
+		// parse localized months manually
 		$aMonths = array("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
 		$dateElements = explode(' ', trim(substr($weirdDate, 3)));
 		$month = $dateElements[1];
@@ -26,6 +28,17 @@
 		}
 		
 		return strftime("%Y-%m-%d", mktime(0, 0, 0, $nMonth, $day, $year));
+	}
+	
+	// string from 'Gegrillte H&auml;hnchenkeule mit Letscho\r\nund gebackenen Kartoffelecken'
+	// to 'Gegrillte Hähnchenkeule mit Letscho und gebackenen Kartoffelecken'
+	// or from 'Nudeln all arrabiata (vegan), dazu Reibek&auml;se'
+	// to 'Nudeln all arrabiata, dazu Reibekäse'
+	function formatString($weirdString) {
+		$weirdString = preg_replace("/\([^)]+\)/", "", $weirdString);
+		$weirdString = preg_replace('/\s*,/', ',', $weirdString);
+		$weirdString = html_entity_decode(preg_replace("/U\+([0-9A-F]{4})/", "&#x\\1;", $weirdString), ENT_NOQUOTES, 'UTF-8');
+		return str_replace("\r\n", " ", $weirdString);
 	}
 	
 	// Meal API
@@ -65,7 +78,7 @@
 			// Query the DOM for xPaths where meals are
 			$elements = $xpath->query($xpath_query);
 			foreach ($elements as $element) {
-				$meals[] = preg_replace("/\([^)]+\)/","", htmlentities($element->nodeValue));
+				$meals[] = formatString(htmlentities($element->nodeValue));
 			}
 			
 			// Add todays' meal to result set, if meals exist
@@ -111,7 +124,7 @@
 		foreach ($dates as $date) {
 			for ($i = 1; $i <= $mealsPerDay; $i++) {
 				// Sanitize string
-				$cleanString = preg_replace("/\([^)]+\)/","", htmlentities($meals->item($j + $i - 2)->nodeValue, ENT_COMPAT));
+				$cleanString = formatString(htmlentities($meals->item($j + $i - 2)->nodeValue, ENT_COMPAT));
 				if (strlen($cleanString) > 0) {
 					$allMealsPerDay[$i - 1] = $cleanString;
 				}
@@ -129,6 +142,7 @@
 	if ($UP_TO_DATE) {
 		file_put_contents($filename, serialize($result));
 	}
+	
 	$json = json_encode($result);
 	echo $json;
 ?> 
