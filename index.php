@@ -50,9 +50,9 @@
 	// TODO Error handling
 	// TODO Fix bug of not-up-to-date meal plan
 	$filename = date('Y-m-d');
-	$result = array();
+	$resultArray = array();
 	if (file_exists($filename) && !isset($_GET['force_update'])) {
-		$result = unserialize( file_get_contents($filename) );
+		$resultArray = unserialize( file_get_contents($filename) );
 	} else {
 		$dates = array();
 		$meals = array();
@@ -84,9 +84,9 @@
 				$meals[] = formatString(htmlentities($element->nodeValue));
 			}
 			
-			// Add todays' meal to result set, if meals exist
+			// Add todays' meal to resultArray set, if meals exist
 			if (count($meals) > 0 ) {
-				$result[] = ['date' => $dates[0], 'meals' => $meals];
+				$resultArray[] = ['date' => $dates[0], 'meals' => $meals];
 				$UP_TO_DATE = true;
 			} else {
 				$UP_TO_DATE = false;
@@ -134,8 +134,10 @@
 			}
 			
 			$j += $mealsPerDay;
-			// Add this days' meals to result set
-			$result[] = ['date' => $date, 'meals' => $allMealsPerDay];
+			// Add this days' meals to resultArray set
+			$resultArray[] = ['date' => $date, 'meals' => $allMealsPerDay];
+			$result = ['days' => $resultArray];
+			
 			unset($allMealsPerDay);
 		}
 		curl_close($ch);
@@ -146,6 +148,5 @@
 		file_put_contents($filename, serialize($result));
 	}
 	
-	$json = json_encode($result);
-	echo $json;
-?> 
+	echo json_encode($result);
+?>
