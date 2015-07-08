@@ -136,17 +136,19 @@
 			$j += $mealsPerDay;
 			// Add this days' meals to resultArray set
 			$resultArray[] = ['date' => $date, 'meals' => $allMealsPerDay];
-			$result = ['days' => $resultArray];
+			
+			// persist for the next time to save traffic
+			if ($UP_TO_DATE) {
+				file_put_contents($filename, serialize($result));
+			}
 			
 			unset($allMealsPerDay);
 		}
 		curl_close($ch);
 	}
 	
-	// Only persist, if all meals are up-to-date
-	if ($UP_TO_DATE) {
-		file_put_contents($filename, serialize($result));
-	}
+	// put the array in a list
+	$result = ['days' => $resultArray];
 	
 	echo json_encode($result);
-?>
+?> 
