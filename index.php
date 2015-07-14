@@ -34,14 +34,22 @@
 	// to 'Gegrillte Hähnchenkeule mit Letscho und gebackenen Kartoffelecken'
 	// or from 'Nudeln all arrabiata (vegan), dazu Reibek&auml;se'
 	// to 'Nudeln all arrabiata, dazu Reibekäse'
+	// TODO or from 'Hähnchengeschnetzeltes ;&quot;Calvados;&quot;'
+	// to 'Hähnchengeschnetzeltes "Calvados"'
 	function formatString($weirdString) {
 		$weirdString = preg_replace("/\([^)]+\)/", "", $weirdString);
 		$weirdString = preg_replace('/\s*,/', ',', $weirdString);
 		$weirdString = str_replace(' - ', '-', $weirdString);
 		$weirdString = preg_replace('/\s(\r\n)/', ' ', $weirdString);
 		$weirdString = preg_replace('/(\r\n)/', ' ', $weirdString);
-		$weirdString = html_entity_decode(preg_replace("/U\+([0-9A-F]{4})/", "&#x\\1;", $weirdString), ENT_NOQUOTES, 'UTF-8');
+		$weirdString = html_entity_decode($weirdString, ENT_COMPAT, 'UTF-8');
+		//$weirdString = preg_replace('\"', '\u0022', $weirdString);
 		return $weirdString;
+	}
+	
+	function encode_items(&$item, $key)
+	{
+		$item = utf8_encode($item);
 	}
 	
 	// Meal API
@@ -124,18 +132,22 @@
 		$j = 1;
 		$allMealsPerDay = array();
 		$length = $meals->length;
+		
+		$mealsArray = array();
 		foreach ($dates as $date) {
 			for ($i = 1; $i <= $mealsPerDay; $i++) {
 				// Sanitize string
 				$cleanString = formatString(htmlentities($meals->item($j + $i - 2)->nodeValue, ENT_COMPAT));
 				if (strlen($cleanString) > 0) {
 					$allMealsPerDay[$i - 1] = $cleanString;
+					$mealsArray[] = ['mealNumber' => $i, 'name' => $cleanString];
 				}
 			}
 			
 			$j += $mealsPerDay;
+			
 			// Add this days' meals to resultArray set
-			$resultArray[] = ['date' => $date, 'meals' => $allMealsPerDay];
+			$resultArray[] = ['date' => $date, 'meals' => $mealsArray];
 			
 			// persist for the next time to save traffic
 			if ($UP_TO_DATE) {
