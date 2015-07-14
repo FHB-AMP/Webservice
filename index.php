@@ -139,7 +139,7 @@
 			
 			// persist for the next time to save traffic
 			if ($UP_TO_DATE) {
-				file_put_contents($filename, serialize($result));
+				file_put_contents($filename, serialize($resultArray));
 			}
 			
 			unset($allMealsPerDay);
