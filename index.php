@@ -89,6 +89,7 @@
 			
 			// Add todays' meal to resultArray set, if meals exist
 			if (count($meals) > 0 ) {
+				$mealsArray[] = ['mealNumber' => $i, 'name' => $cleanString, 'additives' => $cleanAdditivesString];
 				$resultArray[] = ['date' => $dates[0], 'meals' => $meals];
 				$UP_TO_DATE = true;
 			} else {
@@ -119,9 +120,9 @@
 		
 		// Query the DOM for xPaths where meals and additives are
 		$xPathQueryMeals = "//td[@class='text1'] | //td[@class='text2'] | //td[@class='text3'] | //td[@class='text4']";
-		// $xPathQueryAdditives = "//td[@class='label1']/div/a | //td[@class='label2']/div/a | //td[@class='label3']/div/a | //td[@class='label4']/div/a";
+		$xPathQueryAdditives = "//td[@class='label1']/div[contains(@style, 'font-size:10px') and contains(@style, 'text-align:right')]/a[@class='external-link-new-window'] | //td[@class='label2']/div[contains(@style, 'font-size:10px') and contains(@style, 'text-align:right')]/a[@class='external-link-new-window'] | //td[@class='label3']/div[contains(@style, 'font-size:10px') and contains(@style, 'text-align:right')]/a[@class='external-link-new-window'] | //td[@class='label4']/div[contains(@style, 'font-size:10px') and contains(@style, 'text-align:right')]/a[@class='external-link-new-window']";
 		$meals = $xpath->query($xPathQueryMeals);
-		// $additives = $xpath->query($xPathQueryAdditives);
+		$additives = $xpath->query($xPathQueryAdditives);
 		
 		// Combine dates and corresponding meals
 		$mealsPerDay = 4;
@@ -133,9 +134,9 @@
 			for ($i = 1; $i <= $mealsPerDay; $i++) {
 				// Sanitize string
 				$cleanString = formatString(htmlentities($meals->item($j + $i - 2)->nodeValue, ENT_COMPAT));
-				// $cleanAdditivesString = formatString(htmlentities($additives->item($j + $i - 2)->nodeValue, ENT_COMPAT));
+				$cleanAdditivesString = formatString(htmlentities($additives->item($j + $i - 2)->nodeValue, ENT_COMPAT));
 				if (strlen($cleanString) > 0) {
-					$mealsArray[$i - 1] = ['mealNumber' => $i, 'name' => $cleanString];
+					$mealsArray[$i - 1] = ['mealNumber' => $i, 'name' => $cleanString, 'symbols' => array(), 'additives' => array(), 'allergens' => array()];
 				}
 			}
 			
