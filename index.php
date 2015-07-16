@@ -47,11 +47,6 @@
 		return $weirdString;
 	}
 	
-	function encode_items(&$item, $key)
-	{
-		$item = utf8_encode($item);
-	}
-	
 	// Meal API
 	// Fetches meals from a web page and provides RESTful web service
 	// @author André Nitze (andre.nitze@fh-brandenburg.de)
@@ -122,15 +117,15 @@
 			$dates[] = formatDate($date->nodeValue);
 		}
 		
-		
-		// Query the DOM for xPaths where meals are
+		// Query the DOM for xPaths where meals and additives are
 		$xPathQueryMeals = "//td[@class='text1'] | //td[@class='text2'] | //td[@class='text3'] | //td[@class='text4']";
+		// $xPathQueryAdditives = "//td[@class='label1']/div/a | //td[@class='label2']/div/a | //td[@class='label3']/div/a | //td[@class='label4']/div/a";
 		$meals = $xpath->query($xPathQueryMeals);
+		// $additives = $xpath->query($xPathQueryAdditives);
 		
 		// Combine dates and corresponding meals
 		$mealsPerDay = 4;
 		$j = 1;
-		$allMealsPerDay = array();
 		$length = $meals->length;
 		
 		$mealsArray = array();
@@ -138,9 +133,9 @@
 			for ($i = 1; $i <= $mealsPerDay; $i++) {
 				// Sanitize string
 				$cleanString = formatString(htmlentities($meals->item($j + $i - 2)->nodeValue, ENT_COMPAT));
+				// $cleanAdditivesString = formatString(htmlentities($additives->item($j + $i - 2)->nodeValue, ENT_COMPAT));
 				if (strlen($cleanString) > 0) {
-					$allMealsPerDay[$i - 1] = $cleanString;
-					$mealsArray[] = ['mealNumber' => $i, 'name' => $cleanString];
+					$mealsArray[$i - 1] = ['mealNumber' => $i, 'name' => $cleanString];
 				}
 			}
 			
