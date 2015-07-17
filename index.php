@@ -86,12 +86,14 @@
 			$elements = $xpath->query($xPathQueryMeals);
 			$symbols = $xpath->query($xPathQuerySymbols);
 			
+			// fetch meals from today
 			$j = 0;
 			foreach ($elements as $element) {
 				$meals[$j] = formatString(htmlentities($element->nodeValue));
 				$j++;
 			}
 			
+			// combine meals and other stuff
 			for ($k = 1; $k < count($meals); $k++) {
 				$cleanSymbolsString = $symbols->item($k-1)->getAttribute('title');
 				$cleanString = $meals[$k-1];
@@ -122,6 +124,7 @@
 		}
 		
 		@$dom->loadHTML($html);
+		
 		// Create xPath expression
 		$xpath = new DOMXpath($dom);
 		// Query the DOM for date nodes
@@ -133,23 +136,74 @@
 		
 		// Query the DOM for xPaths where meals and additives are
 		$xPathQueryMeals = "//td[@class='text1'] | //td[@class='text2'] | //td[@class='text3'] | //td[@class='text4']";
-		$xPathQueryAdditives = "//td[@class='label1']/div[contains(@style, 'font-size:10px') and contains(@style, 'text-align:right')]/a[@class='external-link-new-window'] | //td[@class='label2']/div[contains(@style, 'font-size:10px') and contains(@style, 'text-align:right')]/a[@class='external-link-new-window'] | //td[@class='label3']/div[contains(@style, 'font-size:10px') and contains(@style, 'text-align:right')]/a[@class='external-link-new-window'] | //td[@class='label4']/div[contains(@style, 'font-size:10px') and contains(@style, 'text-align:right')]/a[@class='external-link-new-window']";
 		$meals = $xpath->query($xPathQueryMeals);
-		$additives = $xpath->query($xPathQueryAdditives);
+		
+		// making xpath more simple
+		$doc = new DOMDocument();
+		$doc->loadHTML($html);
+		$xml = simplexml_import_dom($doc);
+		
+		// arrays for all known additives and allergens
+		$knownAdditives = array("(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(11)", "(13)", "(14)", "(20)", "(21)", "(22)", "(23)", "(KF)", "(TL)", "(AL)", "(GE)");
+		$knownAllergens = array("(A)", "(B)", "(C)", "(D)", "(E)", "(F)", "(G)", "(H)", "(I)", "(J)", "(K)", "(L)", "(M)", "(N)");
 		
 		// Combine dates and corresponding meals
 		$mealsPerDay = 4;
 		$j = 1;
-		
+		$actualDay = 1;
+		$div = 3;
 		$mealsArray = array();
+		$additives = array();
+		$allergens = array();
+		
 		foreach ($dates as $date) {
 			for ($i = 1; $i <= $mealsPerDay; $i++) {
-				// Sanitize string
+				
+				// fetch and sanitize meals-string
 				$cleanString = formatString(htmlentities($meals->item($j + $i - 2)->nodeValue, ENT_COMPAT));
-				$cleanAdditivesString = formatString(htmlentities($additives->item($j + $i - 2)->nodeValue, ENT_COMPAT));
-				if (strlen($cleanString) > 0) {
-					$mealsArray[$i - 1] = ['mealNumber' => $i, 'name' => $cleanString, 'symbols' => array(), 'additives' => array(), 'allergens' => array()];
+				
+				// set actual xPathes
+				$xPathQuerySymbols = "//table/tr/td/div[$div]/table[$actualDay]/tr[4]/td[$i]/div[2]/a/img";
+				$xPathQueryAdditives = "//table/tr/td/div[$div]/table[$actualDay]/tr[4]/td[$i]/div[1]/a";
+				
+				// fetch symbols
+				foreach ($xml->xpath($xPathQuerySymbols) as $img) {
+					if (isset($img["title"])) {
+						$symbol = $img['title'];
+						$symbols[] = $symbol;
+					}	
 				}
+				
+				// fetch additives and allergens
+				foreach ($xpath->query($xPathQueryAdditives) as $textNode) {
+					$value = $textNode->nodeValue;
+					if (in_array($value, $knownAdditives) && !(in_array($value, $additives))) {
+						$additives[] = $value;
+					} elseif (in_array($value, $knownAllergens)&& !(in_array($value, $allergens))) {
+						$allergens[] = $value;
+					}
+				}
+				
+				// fill empty arrays
+				if(!$additives)
+				{
+					$additives[] = '';
+				}
+				
+				if(!$allergens)
+				{
+					$allergens[] = '';
+				}
+				
+				//
+				if (strlen($cleanString) > 0) {
+					$mealsArray[$i - 1] = ['mealNumber' => $i, 'name' => $cleanString, 'symbols' => $symbols, 'additives' => $additives, 'allergens' => $allergens];
+				}
+				
+				// unset for the next run
+				unset($symbols);
+				unset($additives);
+				unset($allergens);
 			}
 			
 			$j += $mealsPerDay;
@@ -162,7 +216,13 @@
 				// file_put_contents($filename, serialize($resultArray));
 			}
 			
-			unset($allMealsPerDay);
+			// it's because of the stupid html on the side
+			if ($actualDay == 5) {
+				$actualDay = 1;
+				$div = 4;
+			} else {
+				$actualDay++;
+			}		
 		}
 		curl_close($ch);
 	}
