@@ -83,19 +83,24 @@
 			$dates[0] = date("Y-m-d");
 			// Query the DOM for xPaths where meals are
 			$elements = $xpath->query($xpath_query);
+			
+			$k = 0;
 			foreach ($elements as $element) {
-				$meals[] = formatString(htmlentities($element->nodeValue));
+				$cleanString = formatString(htmlentities($element->nodeValue));
+				if (strlen($cleanString) > 0) {
+					$mealsArray[] = ['mealNumber' => $k+1, 'name' => $cleanString, 'symbols' => array(), 'additives' => array(), 'allergens' => array()];
+				}
+				$k++;
 			}
 			
 			// Add todays' meal to resultArray set, if meals exist
-			if (count($meals) > 0 ) {
-				$mealsArray[] = ['mealNumber' => $i, 'name' => $cleanString, 'additives' => $cleanAdditivesString];
-				$resultArray[] = ['date' => $dates[0], 'meals' => $meals];
+			if (count($mealsArray) > 0 ) {
+				$resultArray[] = ['date' => $dates[0], 'meals' => $mealsArray];
 				$UP_TO_DATE = true;
 			} else {
 				$UP_TO_DATE = false;
 			}
-			// Reset date array for 'upcoming meals' processing
+				// Reset date array for 'upcoming meals' processing
 			unset($dates);
 		}
 		
