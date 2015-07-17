@@ -78,19 +78,27 @@
 			@$dom->loadHTML($html);
 			// Create xPath expression and query
 			$xpath = new DOMXpath($dom);
-			$xpath_query = "//table[@class]/tr[2]/td";
+			$xPathQueryMeals = "//table[@class]/tr[2]/td";
+			$xPathQuerySymbols = "//table[@class]/tr[3]/td/div[2]/a/img";
 			// Set current date
 			$dates[0] = date("Y-m-d");
 			// Query the DOM for xPaths where meals are
-			$elements = $xpath->query($xpath_query);
+			$elements = $xpath->query($xPathQueryMeals);
+			$symbols = $xpath->query($xPathQuerySymbols);
 			
-			$k = 0;
+			$j = 0;
 			foreach ($elements as $element) {
-				$cleanString = formatString(htmlentities($element->nodeValue));
-				if (strlen($cleanString) > 0) {
-					$mealsArray[] = ['mealNumber' => $k+1, 'name' => $cleanString, 'symbols' => array(), 'additives' => array(), 'allergens' => array()];
+				$meals[$j] = formatString(htmlentities($element->nodeValue));
+				$j++;
+			}
+			
+			for ($k = 1; $k < count($meals); $k++) {
+				$cleanSymbolsString = $symbols->item($k-1)->getAttribute('title');
+				$cleanString = $meals[$k-1];
+				
+				if (strlen($cleanString) > 0 && strlen($cleanSymbolsString) > 0 ) {
+					$mealsArray[] = ['mealNumber' => $k, 'name' => $cleanString, 'symbols' => $cleanSymbolsString, 'additives' => array(), 'allergens' => array()];
 				}
-				$k++;
 			}
 			
 			// Add todays' meal to resultArray set, if meals exist
@@ -132,7 +140,6 @@
 		// Combine dates and corresponding meals
 		$mealsPerDay = 4;
 		$j = 1;
-		$length = $meals->length;
 		
 		$mealsArray = array();
 		foreach ($dates as $date) {
@@ -152,7 +159,7 @@
 			
 			// persist for the next time to save traffic
 			if ($UP_TO_DATE) {
-				file_put_contents($filename, serialize($resultArray));
+				// file_put_contents($filename, serialize($resultArray));
 			}
 			
 			unset($allMealsPerDay);
