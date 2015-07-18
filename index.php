@@ -70,8 +70,10 @@
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 		// Create a DOM parser object
 		$dom = new DOMDocument();
+		
 		// No meals after 2 pm (closing time)
 		if (date('G') < 14) {
+			
 			// Get meal from todays' meal plan
 			$url = "http://www.studentenwerk-potsdam.de/mensa-brandenburg.html";
 			curl_setopt($ch, CURLOPT_URL, $url);
@@ -80,31 +82,86 @@
 				die(curl_error($ch));
 			}
 			@$dom->loadHTML($html);
+			
 			// Create xPath expression and query
 			$xpath = new DOMXpath($dom);
 			$xPathQueryMeals = "//table[@class]/tr[2]/td";
-			$xPathQuerySymbols = "//table[@class]/tr[3]/td/div[2]/a/img";
+			
+			// making xpath more simple
+			$doc = new DOMDocument();
+			$doc->loadHTML($html);
+			$xml = simplexml_import_dom($doc);
+			
 			// Set current date
 			$dates[0] = date("Y-m-d");
+			
 			// Query the DOM for xPaths where meals are
 			$elements = $xpath->query($xPathQueryMeals);
-			$symbols = $xpath->query($xPathQuerySymbols);
 			
 			// fetch meals from today
 			$j = 0;
 			foreach ($elements as $element) {
+				
+				// fetch, sanitize meals-string and store in array
 				$meals[$j] = formatString(htmlentities($element->nodeValue));
 				$j++;
 			}
 			
-			// combine meals and other stuff
+			$symbols = array();
+			$additives = array();
+			$allergens = array();
+			
+			// combine today meals and other stuff
 			for ($k = 1; $k < count($meals); $k++) {
-				$cleanSymbolsString = $symbols->item($k-1)->getAttribute('title');
+				
 				$cleanString = $meals[$k-1];
 				
-				if (strlen($cleanString) > 0 && strlen($cleanSymbolsString) > 0 ) {
-					$mealsArray[] = ['mealNumber' => $k, 'name' => $cleanString, 'symbols' => $cleanSymbolsString, 'additives' => array(), 'allergens' => array()];
+				// set actual xPathes for symbols, additives and allergens
+				$xPathQuerySymbols = "//table/tr/td/div[2]/table/tr[3]/td[$k]/div[2]/a/img";
+				$xPathQueryAdditives = "//table/tr/td/div[2]/table/tr[3]/td[$k]/div[1]/a";
+				
+				// fetch symbols
+				foreach ($xml->xpath($xPathQuerySymbols) as $img) {
+					if (isset($img["title"])) {
+						echo (string) $img['title'];
+						$symbols[] = (string) $img['title'];
+					}	
 				}
+				
+				// fetch additives and allergens
+				foreach ($xpath->query($xPathQueryAdditives) as $textNode) {
+					$value = $textNode->nodeValue;
+					if (in_array($value, $knownAdditives) && !(in_array($value, $additives))) {
+						$additives[] = $value;
+					} elseif (in_array($value, $knownAllergens)&& !(in_array($value, $allergens))) {
+						$allergens[] = $value;
+					}
+				}
+				
+				// empty arrays in the right form: value = [ null ] => value = []
+				if(!$symbols)
+				{
+					$symbols = array();
+				}
+				if(!$additives)
+				{
+					$additives = array();
+				}
+				
+				if(!$allergens)
+				{
+					$allergens = array();
+				}
+				
+				// fill the meals with other informations
+				if (strlen($cleanString) > 0) {
+					$mealsArray[$i - 1] = ['mealNumber' => $k, 'name' => $cleanString, 'symbols' => $symbols, 'additives' => $additives, 'allergens' => $allergens];
+				}
+				
+				// unset for the next run
+				unset($symbols);
+				unset($additives);
+				unset($allergens);
 			}
 			
 			// Add todays' meal to resultArray set, if meals exist
@@ -114,7 +171,8 @@
 			} else {
 				$UP_TO_DATE = false;
 			}
-				// Reset date array for 'upcoming meals' processing
+			
+			// Reset date array for 'upcoming meals' processing
 			unset($dates);
 		}
 		
@@ -199,7 +257,7 @@
 					$allergens = array();
 				}
 				
-				//
+				// fill the meals with other informations
 				if (strlen($cleanString) > 0) {
 					$mealsArray[$i - 1] = ['mealNumber' => $i, 'name' => $cleanString, 'symbols' => $symbols, 'additives' => $additives, 'allergens' => $allergens];
 				}
@@ -217,7 +275,7 @@
 			
 			// persist for the next time to save traffic
 			if ($UP_TO_DATE) {
-				// file_put_contents($filename, serialize($resultArray));
+				file_put_contents($filename, serialize($resultArray));
 			}
 			
 			// it's because of the stupid html on the side
