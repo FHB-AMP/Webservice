@@ -49,11 +49,15 @@
 	
 	// Meal API
 	// Fetches meals from a web page and provides RESTful web service
-	// @author André Nitze (andre.nitze@fh-brandenburg.de)
+	// @author André Nitze (andre.nitze@fh-brandenburg.de) & Jano Espenhahn (espenhah@fh-brandenburg.de)
 	// TODO Error handling
-	// TODO Fix bug of not-up-to-date meal plan
 	$filename = date('Y-m-d');
 	$resultArray = array();
+	
+	// arrays for all known additives and allergens
+	$knownAdditives = array("(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(11)", "(13)", "(14)", "(20)", "(21)", "(22)", "(23)", "(KF)", "(TL)", "(AL)", "(GE)");
+	$knownAllergens = array("(A)", "(B)", "(C)", "(D)", "(E)", "(F)", "(G)", "(H)", "(I)", "(J)", "(K)", "(L)", "(M)", "(N)");
+		
 	if (file_exists($filename) && !isset($_GET['force_update'])) {
 		$resultArray = unserialize( file_get_contents($filename) );
 	} else {
@@ -143,16 +147,13 @@
 		$doc->loadHTML($html);
 		$xml = simplexml_import_dom($doc);
 		
-		// arrays for all known additives and allergens
-		$knownAdditives = array("(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(11)", "(13)", "(14)", "(20)", "(21)", "(22)", "(23)", "(KF)", "(TL)", "(AL)", "(GE)");
-		$knownAllergens = array("(A)", "(B)", "(C)", "(D)", "(E)", "(F)", "(G)", "(H)", "(I)", "(J)", "(K)", "(L)", "(M)", "(N)");
-		
 		// Combine dates and corresponding meals
 		$mealsPerDay = 4;
 		$j = 1;
 		$actualDay = 1;
 		$div = 3;
 		$mealsArray = array();
+		$symbols = array();
 		$additives = array();
 		$allergens = array();
 		
@@ -169,8 +170,7 @@
 				// fetch symbols
 				foreach ($xml->xpath($xPathQuerySymbols) as $img) {
 					if (isset($img["title"])) {
-						$symbol = $img['title'];
-						$symbols[] = $symbol;
+						$symbols[] = (string) $img['title'];
 					}	
 				}
 				
@@ -184,15 +184,19 @@
 					}
 				}
 				
-				// fill empty arrays
+				// empty arrays in the right form: value = [ null ] => value = []
+				if(!$symbols)
+				{
+					$symbols = array();
+				}
 				if(!$additives)
 				{
-					$additives[] = '';
+					$additives = array();
 				}
 				
 				if(!$allergens)
 				{
-					$allergens[] = '';
+					$allergens = array();
 				}
 				
 				//
