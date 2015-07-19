@@ -35,7 +35,7 @@
 	// or from 'Nudeln all arrabiata (vegan), dazu Reibek&auml;se'
 	// to 'Nudeln all arrabiata, dazu Reibekäse'
 	// TODO or from 'Hähnchengeschnetzeltes ;&quot;Calvados;&quot;'
-	// to 'Hähnchengeschnetzeltes "Calvados"'
+	// to 'Hähnchengeschnetzeltes 'Calvados'
 	function formatString($weirdString) {
 		$weirdString = preg_replace("/\([^)]+\)/", "", $weirdString);
 		$weirdString = preg_replace('/\s*,/', ',', $weirdString);
