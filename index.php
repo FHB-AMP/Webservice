@@ -42,8 +42,9 @@
 		$weirdString = str_replace(' - ', '-', $weirdString);
 		$weirdString = preg_replace('/\s(\r\n)/', ' ', $weirdString);
 		$weirdString = preg_replace('/(\r\n)/', ' ', $weirdString);
+		$weirdString = str_replace('&quot;',"'",$weirdString);
+		//$weirdString = preg_replace('&quot;', '\u0022', $weirdString);
 		$weirdString = html_entity_decode($weirdString, ENT_COMPAT, 'UTF-8');
-		//$weirdString = preg_replace('\"', '\u0022', $weirdString);
 		return $weirdString;
 	}
 	
