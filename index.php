@@ -112,7 +112,7 @@
 			$allergens = array();
 			
 			// combine today meals and other stuff
-			for ($k = 1; $k < count($meals); $k++) {
+			for ($k = 1; $k <= count($meals); $k++) {
 				
 				$cleanString = $meals[$k-1];
 				
@@ -123,7 +123,6 @@
 				// fetch symbols
 				foreach ($xml->xpath($xPathQuerySymbols) as $img) {
 					if (isset($img["title"])) {
-						echo (string) $img['title'];
 						$symbols[] = (string) $img['title'];
 					}	
 				}
