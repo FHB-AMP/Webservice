@@ -161,14 +161,14 @@
 		],[
 			"id" => "(OVO)",
 			"name" => "Ovo-Lacto-Vegetarisch",
-			"definition" => "Ovo-Lacto-Vegetarier essen nichts vom toten Tier.",
+			"definition" => "Ovo-Lacto-Vegetarier verzehren, neben pflanzlichen Nahrungsmitteln, nur Produkte, die von lebenden Tieren stammen.",
 			"excludedSymbols" => [ "mit Schweinefleisch", "mit Rindfleisch", "mit Lamm", "mit Fisch", "mit Geflügelfleisch"],
 			"excludedAdditives" => [ "(GE)" ],
 			"excludedAllergens" => [ "(B)", "(D)", "(N)" ]
 		],[
 			"id" => "(VEG)",
 			"name" => "Vegan",
-			"definition" => "Veganer essen gar keine tierischen Produkte.",
+			"definition" => "Veganismus ist eine besondere Form des Vegetarismus, bei der keinerlei tierische Produkte konsumiert werden.",
 			"excludedSymbols" => [ "mit Schweinefleisch", "mit Rindfleisch", "mit Lamm", "mit Fisch", "mit Geflügelfleisch"],
 			"excludedAdditives" => [ "(13)", "(14)", "(22)", "(23)", "(TL)", "(GE)" ],
 			"excludedAllergens" => [ "(B)", "(C)", "(D)", "(G)", "(N)" ]
@@ -197,7 +197,7 @@
 	        "definition" => "ovo-lacto-vegetabil"
 	    ],[
 	        "id" => "vegan",
-	        "definition" => "Vegan"
+	        "definition" => "vegan"
 	    ],[
 	        "id" => "mensaVital",
 	        "definition" => "Mensa Vital"
