@@ -14,7 +14,7 @@
 		$year = $date["year"];
 		
 		// parse localized months manually
-		$aMonths = array("Januar", "Februar", "MÃƒÂ¤rz", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
+		$aMonths = array("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
 		$dateElements = explode(' ', trim(substr($weirdDate, 3)));
 		$month = $dateElements[1];
 		
@@ -31,26 +31,23 @@
 	}
 	
 	// string from 'Gegrillte H&auml;hnchenkeule mit Letscho\r\nund gebackenen Kartoffelecken'
-	// to 'Gegrillte HÃƒÂ¤hnchenkeule mit Letscho und gebackenen Kartoffelecken'
-	// or from 'Nudeln all arrabiata (vegan), dazu Reibek&auml;se'
-	// to 'Nudeln all arrabiata, dazu ReibekÃƒÂ¤se'
-	// TODO or from 'HÃƒÂ¤hnchengeschnetzeltes ;&quot;Calvados;&quot;'
-	// to 'HÃƒÂ¤hnchengeschnetzeltes 'Calvados'
+	// to 'Gegrillte Hähnchenkeule mit Letscho und gebackenen Kartoffelecken'
+	// TODO or from 'Hähnchengeschnetzeltes ;&quot;Calvados;&quot;'
+	// to 'Hähnchengeschnetzeltes 'Calvados'
 	function formatString($weirdString) {
-		$weirdString = preg_replace("/\([^)]+\)/", "", $weirdString);
+		// $weirdString = preg_replace("/\([^)]+\)/", "", $weirdString);
 		$weirdString = preg_replace('/\s*,/', ',', $weirdString);
 		$weirdString = str_replace(' - ', '-', $weirdString);
 		$weirdString = preg_replace('/\s(\r\n)/', ' ', $weirdString);
 		$weirdString = preg_replace('/(\r\n)/', ' ', $weirdString);
 		$weirdString = str_replace('&quot;',"'",$weirdString);
-		//$weirdString = preg_replace('&quot;', '\u0022', $weirdString);
 		$weirdString = html_entity_decode($weirdString, ENT_COMPAT, 'UTF-8');
 		return $weirdString;
 	}
 	
 	// Meal API
 	// Fetches meals from a web page and provides RESTful web service
-	// @author AndrÃƒÂ© Nitze (andre.nitze@fh-brandenburg.de) & Jano Espenhahn (espenhah@fh-brandenburg.de)
+	// @author André Nitze (andre.nitze@fh-brandenburg.de) and Jano Espenhahn (espenhah@fh-brandenburg.de)
 	// TODO Error handling
 	$filename = date('Y-m-d');
 	$resultArray = array();
@@ -209,11 +206,17 @@
 		$mealsPerDay = 4;
 		$j = 1;
 		$actualDay = 1;
-		$div = 3;
+		$dayOfWeek = date("N");
+		$div = 2;
 		$mealsArray = array();
 		$symbols = array();
 		$additives = array();
 		$allergens = array();
+		
+		// specific for the html on the side
+		if ($dayOfWeek >= 5) {
+			$div = 3;
+		}
 		
 		foreach ($dates as $date) {
 			for ($i = 1; $i <= $mealsPerDay; $i++) {
@@ -278,13 +281,21 @@
 				file_put_contents($filename, serialize($resultArray));
 			}
 			
-			// it's because of the stupid html on the side
-			if ($actualDay == 5) {
+			// it's because of the html on the side
+			if (($dayOfWeek >= 5 && $actualDay == 5 && $runs == 0) |
+				($dayOfWeek == 4 && $actualDay == 1 && $runs == 0) |
+				($dayOfWeek == 3 && $actualDay == 2 && $runs == 0) |
+				($dayOfWeek == 2 && $actualDay == 3 && $runs == 0) |
+				($dayOfWeek == 1 && $actualDay == 4 && $runs == 0)) {
 				$actualDay = 1;
-				$div = 4;
+				$div++;
+				$runs++;
+			} else if ($runs > 0 && $actualDay == 5) {
+				$actualDay = 1;
+				$div++;
 			} else {
 				$actualDay++;
-			}		
+			}	
 		}
 		curl_close($ch);
 	}
