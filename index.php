@@ -14,7 +14,7 @@
 		$year = $date["year"];
 		
 		// parse localized months manually
-		$aMonths = array("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
+		$aMonths = array("Januar", "Februar", "MÃƒÂ¤rz", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
 		$dateElements = explode(' ', trim(substr($weirdDate, 3)));
 		$month = $dateElements[1];
 		
@@ -31,11 +31,11 @@
 	}
 	
 	// string from 'Gegrillte H&auml;hnchenkeule mit Letscho\r\nund gebackenen Kartoffelecken'
-	// to 'Gegrillte Hähnchenkeule mit Letscho und gebackenen Kartoffelecken'
+	// to 'Gegrillte HÃƒÂ¤hnchenkeule mit Letscho und gebackenen Kartoffelecken'
 	// or from 'Nudeln all arrabiata (vegan), dazu Reibek&auml;se'
-	// to 'Nudeln all arrabiata, dazu Reibekäse'
-	// TODO or from 'Hähnchengeschnetzeltes ;&quot;Calvados;&quot;'
-	// to 'Hähnchengeschnetzeltes 'Calvados'
+	// to 'Nudeln all arrabiata, dazu ReibekÃƒÂ¤se'
+	// TODO or from 'HÃƒÂ¤hnchengeschnetzeltes ;&quot;Calvados;&quot;'
+	// to 'HÃƒÂ¤hnchengeschnetzeltes 'Calvados'
 	function formatString($weirdString) {
 		$weirdString = preg_replace("/\([^)]+\)/", "", $weirdString);
 		$weirdString = preg_replace('/\s*,/', ',', $weirdString);
@@ -50,7 +50,7 @@
 	
 	// Meal API
 	// Fetches meals from a web page and provides RESTful web service
-	// @author André Nitze (andre.nitze@fh-brandenburg.de) & Jano Espenhahn (espenhah@fh-brandenburg.de)
+	// @author AndrÃƒÂ© Nitze (andre.nitze@fh-brandenburg.de) & Jano Espenhahn (espenhah@fh-brandenburg.de)
 	// TODO Error handling
 	$filename = date('Y-m-d');
 	$resultArray = array();
@@ -115,7 +115,7 @@
 			// combine today meals and other stuff
 			for ($k = 1; $k <= count($meals); $k++) {
 				
-				$cleanString = $meals[$k-1];
+				$cleanString = (string) $meals[$k-1];
 				
 				// set actual xPathes for symbols, additives and allergens
 				$xPathQuerySymbols = "//table/tr/td/div[2]/table/tr[3]/td[$k]/div[2]/a/img";
@@ -155,7 +155,7 @@
 				
 				// fill the meals with other informations
 				if (strlen($cleanString) > 0) {
-					$mealsArray[$i - 1] = ['mealNumber' => $k, 'name' => $cleanString, 'symbols' => $symbols, 'additives' => $additives, 'allergens' => $allergens];
+					$mealsArray[$k - 1] = ['mealNumber' => $k, 'name' => $cleanString, 'symbols' => $symbols, 'additives' => $additives, 'allergens' => $allergens];
 				}
 				
 				// unset for the next run
